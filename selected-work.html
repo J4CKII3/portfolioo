@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selected Work — Khalil Jaouani</title>
+<meta name="description" content="Selected security disclosures, technical writeups, and blog posts by Khalil Jaouani.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="work-page">
+<div class="noise-overlay" aria-hidden="true"></div>
+
+<header class="nav">
+  <a href="index.html" class="logo logo-photo" aria-label="Home"><img src="cyber-hero.png" alt="Khalil Jaouani"></a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel">
+    <span class="menu-icon"></span> MENU
+  </button>
+  <nav class="menu-panel" id="menuPanel">
+    <a href="index.html#stats">Overview</a>
+    <a href="index.html#expertise">Expertise</a>
+    <a href="index.html#background">Background</a>
+    <a href="selected-work.html" aria-current="page">Selected work</a>
+    <a href="blog.html">Blog</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <section class="work-page-hero">
+    <p class="eyebrow">Research archive / 2023—2026</p>
+    <h1>Selected<br><em>Work</em></h1>
+    <p class="work-page-intro">A working archive of the things I break, document, and build around AI security: coordinated disclosures, technical writeups, and practical security projects.</p>
+    <div class="work-page-index" aria-label="Page sections">
+      <a href="#disclosures"><span>01</span> Disclosures</a>
+      <a href="#writeups"><span>02</span> Writeups</a>
+      <a href="#projects"><span>03</span> Projects</a>
+    </div>
+  </section>
+
+  <!-- Add Markdown inside a .work-details block in any card for richer modal details. -->
+  <section class="work-archive-section" id="disclosures">
+    <div class="archive-heading">
+      <span class="archive-number">01</span>
+      <div>
+        <h2>Disclosures</h2>
+        <p>Five primary exploitable cases from my cross-agent memory isolation study, tested against current releases or documented as prior research.</p>
+      </div>
+    </div>
+    <div class="work-grid">
+      <article class="work-card reveal">
+        <span class="tag tag-disclosure">Disclosure — CWE-863 / CWE-94</span>
+        <h3>letta-code: Cross-Agent Memory Isolation Bypass to Code Execution</h3>
+        <p>The cross-agent guard covered file tools but exempted <code>Bash</code>. An agent could read or overwrite another agent's memory, then plant a trusted <code>mods/*.ts</code> file that executed when the victim reloaded.</p>
+        <script type="text/markdown" class="work-details">
+## Finding
+`evaluateCrossAgentGuard()` returned no restriction for shell tools, including the default `Bash` tool.
+
+## Impact
+- Cross-agent memory reads and writes
+- Arbitrary code execution through mod planting
+
+**Status:** Prior research by the author; not independently re-verified in this study.
+        </script>
+        <span class="archive-status">Reported to support; repository archived</span>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-disclosure">Disclosure — Critical / CVSS 9.9</span>
+        <h3>mem0: Metadata-Filter Isolation Bypass and Destructive Wipe</h3>
+        <p>mem0 validated only that an identity key existed. A wildcard could remove the effective filter and expose other tenants' memories, while <code>delete_all("*")</code> could delete every tenant's memory in a shared collection.</p>
+        <script type="text/markdown" class="work-details">
+## Component
+`mem0ai` 2.0.19, latest published version tested at the time of the study.
+
+## Impact
+- Cross-tenant memory reads through the public search API
+- Permanent cross-tenant deletion through `delete_all("*")`
+- Possible indirect prompt injection in consuming agent systems
+
+**Status:** Accepted and credited by mem0 maintainers as GHSA-9f59-36vq-gcw6, rated Critical, CVSS 9.9/10. Affected versions: `< 2.0.20`.
+        </script>
+        <a class="archive-link" href="https://github.com/mem0ai/mem0/security/advisories/GHSA-9f59-36vq-gcw6" target="_blank" rel="noopener">Read advisory <span>↗</span></a>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-disclosure">Disclosure — CWE-89</span>
+        <h3>CrewAI: SQL Injection in <code>scope_prefix</code></h3>
+        <p>CrewAI's LanceDB storage interpolated the caller-controlled scope directly into a SQL <code>LIKE</code> clause. A crafted prefix could return records from every tenant and use the same path to delete them.</p>
+        <script type="text/markdown" class="work-details">
+## Component
+`crewAIInc/crewAI`, `lancedb_storage.py`, version 1.15.18.
+
+## Impact
+- Cross-tenant memory reads through injected scope predicates
+- Destructive deletion across tenants
+
+**Reachability:** Exploitability depends on external input reaching `scope_prefix` or an integration exposing suggested scopes.
+
+**Status:** Submitted to CrewAI's Bugcrowd Vulnerability Disclosure Program; unpatched as reported.
+        </script>
+        <span class="archive-status">Submitted via Bugcrowd VDP</span>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-disclosure">Disclosure — CWE-863</span>
+        <h3>AutoGen: Cross-Agent Memory Write and Poisoning</h3>
+        <p>AutoGen's <code>Mem0Memory.add()</code> trusted <code>metadata['user_id']</code> and allowed a caller to redirect a write into another agent's configured memory scope.</p>
+        <script type="text/markdown" class="work-details">
+## Finding
+`query()` and `clear()` used the instance's fixed identity, but `add()` allowed metadata to override it.
+
+## Impact
+- Direct cross-agent memory poisoning
+- Poisoned content may later be surfaced as trusted context
+
+**Reachability:** This depends on an integration allowing less-trusted or LLM-generated metadata to reach `add()`.
+
+**Status:** Drafted for Microsoft/AutoGen's security process; not submitted at the time of the report.
+        </script>
+        <span class="archive-status">Disclosure drafted</span>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-disclosure">Disclosure — CWE-502</span>
+        <h3>LangGraph: Deserialization Fix Not Safe by Default</h3>
+        <p>Although the msgpack allowlist fix exists, the latest checkpoint package remained permissive by default. Crafted constructor-style data could invoke an attacker-chosen module attribute unless strict mode was enabled.</p>
+        <script type="text/markdown" class="work-details">
+## Component
+`langgraph-checkpoint` 4.2.0, tested beyond the advisory's stated fix version.
+
+## Finding
+Without `LANGGRAPH_STRICT_MSGPACK`, `JsonPlusSerializer` defaults to permissive module handling. A benign `os.getcwd` call was independently confirmed through crafted msgpack data.
+
+## Impact
+- Arbitrary module attribute invocation when attacker-influenced data reaches deserialization
+- Potential command execution with an argument-taking callable
+
+**Status:** Drafted for disclosure as a default-configuration gap in CVE-2026-28277; not submitted at the time of the report.
+        </script>
+        <span class="archive-status">Default configuration gap</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="work-archive-section archive-alt" id="writeups">
+    <div class="archive-heading">
+      <span class="archive-number">02</span>
+      <div>
+        <h2>Writeups</h2>
+        <p>Longer technical breakdowns focused on reproducibility, impact, and the fix.</p>
+      </div>
+    </div>
+    <div class="archive-empty"><strong>COMING SOON</strong><span>No writeups published yet. Add your first technical writeup when it is ready.</span></div>
+  </section>
+
+  <section class="work-archive-section archive-alt" id="projects">
+    <div class="archive-heading">
+      <span class="archive-number">03</span>
+      <div>
+        <h2>Projects</h2>
+        <p>Tools and practical systems built to make security research more repeatable.</p>
+      </div>
+    </div>
+    <div class="work-grid">
+      <article class="work-card reveal">
+        <span class="tag tag-tool">Research tooling</span>
+        <h3>Deterministic Tool-Call Test Harness</h3>
+        <p>A controlled, mock-LLM-backed harness that forces exact tool calls into open-source agent runtimes, isolating security enforcement from model behavior.</p>
+        <span class="archive-status">Agent security / Evaluation</span>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-tool">Go / Reconnaissance</span>
+        <h3>SubEnum — Advanced Multi-Source Subdomain Enumeration Tool</h3>
+        <p>A high-performance Go tool combining passive Certificate Transparency reconnaissance with active DNS brute-forcing.</p>
+        <p>Supports A, CNAME, and MX lookups, wildcard detection, false-positive filtering, adjustable concurrency up to 200 threads, and CSV, JSON, or TXT exports.</p>
+        <a class="archive-link" href="https://github.com/khalilja/SubEnum" target="_blank" rel="noopener">View on GitHub <span>↗</span></a>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-tool">Security utility</span>
+        <h3>Cyber Terminal (XrooT v3.1)</h3>
+        <p>A web-based CyberChef alternative supporting encoding, decoding, hashing with MD5, SHA256, and CRC32, plus Caesar, ROT13, XOR, and other cryptographic operations.</p>
+        <p>Built with vanilla JavaScript, drag-and-drop file input, and zero backend dependencies.</p>
+        <a class="archive-link" href="https://github.com/khalilja/cyber-terminal" target="_blank" rel="noopener">View on GitHub <span>↗</span></a>
+      </article>
+      <article class="work-card reveal">
+        <span class="tag tag-tool">SOC / Detection Engineering</span>
+        <h3>Mini SOC Home Lab</h3>
+        <p>A self-managed SOC environment built with pfSense, Suricata IDS, Elastic SIEM, Fleet Server, and Elastic Defend deployed on a victim machine.</p>
+        <p>Simulated real-world attack scenarios and validated end-to-end detection, alerting, and triage through the Elastic stack.</p>
+        <script type="text/markdown" class="work-details">
+## Architecture
+pfSense provides the network security layer, Suricata handles intrusion detection, and Elastic SIEM centralizes telemetry through Fleet Server and Elastic Defend.
+
+## What I practiced
+- Detection engineering in a self-managed environment
+- End-to-end alert validation
+- Attack simulation and incident triage
+        </script>
+        <span class="archive-status">Hands-on security project</span>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo"><img src="cyber-hero.png" alt="Khalil Jaouani"></span>
+  <div class="footer-links">
+    <a href="mailto:khalil.jaouani@issatm.ucar.tn">khalil.jaouani@issatm.ucar.tn</a>
+    <a href="index.html">Home</a>
+    <a href="https://github.com/yourusername">GitHub</a>
+    <a href="https://www.linkedin.com/in/khalil--jaouani/">LinkedIn</a>
+  </div>
+  <span class="fine-print">Khalil Jaouani &nbsp; Tunisia</span>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>
